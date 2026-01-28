@@ -66,6 +66,18 @@ class ConsumerRepository
         consumerInfos.forEach(ConsumerInfo::halt);
     }
 
+    public boolean hasRunning()
+    {
+        for (ConsumerInfo consumerInfo : consumerInfos)
+        {
+            if (consumerInfo.isRunning())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean hasBacklog(final long cursor, final boolean includeStopped)
     {
         for (ConsumerInfo consumerInfo : consumerInfos)

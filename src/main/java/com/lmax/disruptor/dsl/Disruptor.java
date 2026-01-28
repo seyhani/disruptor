@@ -65,6 +65,7 @@ public class Disruptor<T>
     private final ThreadFactory threadFactory;
     private final ConsumerRepository consumerRepository = new ConsumerRepository();
     private final AtomicBoolean started = new AtomicBoolean(false);
+    private final AtomicBoolean running = new AtomicBoolean(false);
     private ExceptionHandler<? super T> exceptionHandler = new ExceptionHandlerWrapper<>();
 
     /**
@@ -358,6 +359,7 @@ public class Disruptor<T>
     public RingBuffer<T> start()
     {
         checkOnlyStartedOnce();
+        running.set(true);
         consumerRepository.startAll(threadFactory);
 
         return ringBuffer;
@@ -368,6 +370,7 @@ public class Disruptor<T>
      */
     public void halt()
     {
+        running.set(false);
         consumerRepository.haltAll();
     }
 
@@ -501,6 +504,16 @@ public class Disruptor<T>
     public boolean hasStarted()
     {
         return started.get();
+    }
+
+    /**
+     * Checks if disruptor is running
+     *
+     * @return true when start has been called and disruptor not halted; otherwise false
+     */
+    public boolean isRunning()
+    {
+        return running.get() && consumerRepository.hasRunning();
     }
 
     EventHandlerGroup<T> createEventProcessors(
