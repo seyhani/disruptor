@@ -191,6 +191,12 @@ public final class BatchEventProcessor<T>
             catch (final Throwable ex)
             {
                 handleEventException(ex, nextSequence, event);
+                if (ex instanceof FatalException)
+                {
+                    running.set(HALTED);
+                    sequenceBarrier.alert();
+                    break;
+                }
                 sequence.set(nextSequence);
                 nextSequence++;
             }

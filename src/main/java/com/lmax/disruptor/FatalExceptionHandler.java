@@ -32,7 +32,7 @@ public final class FatalExceptionHandler implements ExceptionHandler<Object>
     {
         LOGGER.log(Level.ERROR, () -> "Exception processing: " + sequence + " " + event, ex);
 
-        throw new RuntimeException(ex);
+        throw new FatalException(ex);
     }
 
     @Override
