@@ -2,6 +2,7 @@ package com.lmax.disruptor;
 
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
+import com.lmax.disruptor.support.TestEvent;
 import com.lmax.disruptor.util.DaemonThreadFactory;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +35,10 @@ public class DisruptorFatalExceptionTest
         assertTrue(started.await(1, TimeUnit.SECONDS));
 
         // allow handler thread to process and fail
-        TimeUnit.MILLISECONDS.sleep(100);
+        for (int i = 0; i < 10 && disruptor.isRunning(); i++)
+        {
+            TimeUnit.MILLISECONDS.sleep(50);
+        }
 
         assertFalse(disruptor.isRunning(), "Disruptor should not be running after fatal exception");
         disruptor.halt();
