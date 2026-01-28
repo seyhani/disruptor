@@ -431,13 +431,13 @@ public final class BatchEventProcessorTest
 
         // Wait for the fatal exception to be handled
         assertTrue(fatalExceptionLatch.await(2, TimeUnit.SECONDS));
-        
+
         // Give some time to ensure second event is not processed
         Thread.sleep(100);
-        
+
         // Verify that processor stopped and second event was not processed
         assertEquals(1, eventCountLatch.getCount(), "Second event should not be processed after FatalException");
-        
+
         thread.join(1000);
     }
 }

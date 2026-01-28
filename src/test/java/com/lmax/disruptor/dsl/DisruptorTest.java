@@ -829,7 +829,7 @@ public class DisruptorTest
         };
 
         disruptor.handleEventsWith(eventHandler);
-        
+
         // Before start, isRunning should be false
         assertFalse(disruptor.isRunning(), "Should not be running before start");
 
