@@ -21,7 +21,7 @@ import java.lang.System.Logger.Level;
 /**
  * Convenience implementation of an exception handler that uses the standard JDK logging
  * of {@link System.Logger} to log the exception as {@link Level}.ERROR and re-throw
- * it wrapped in a {@link RuntimeException}
+ * it wrapped in a {@link FatalException}
  */
 public final class FatalExceptionHandler implements ExceptionHandler<Object>
 {
@@ -32,7 +32,7 @@ public final class FatalExceptionHandler implements ExceptionHandler<Object>
     {
         LOGGER.log(Level.ERROR, () -> "Exception processing: " + sequence + " " + event, ex);
 
-        throw new RuntimeException(ex);
+        throw new FatalException(ex);
     }
 
     @Override

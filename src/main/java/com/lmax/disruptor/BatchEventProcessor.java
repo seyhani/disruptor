@@ -188,6 +188,12 @@ public final class BatchEventProcessor<T>
                     break;
                 }
             }
+            catch (final FatalException ex)
+            {
+                handleEventException(ex, nextSequence, event);
+                sequence.set(nextSequence);
+                break;
+            }
             catch (final Throwable ex)
             {
                 handleEventException(ex, nextSequence, event);

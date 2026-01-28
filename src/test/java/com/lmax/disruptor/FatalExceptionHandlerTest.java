@@ -31,7 +31,7 @@ public final class FatalExceptionHandlerTest
 
         ExceptionHandler<Object> exceptionHandler = new FatalExceptionHandler();
 
-        Throwable ex =  assertThrows(RuntimeException.class, () -> exceptionHandler.handleEventException(causeException, 0L, event));
+        Throwable ex =  assertThrows(FatalException.class, () -> exceptionHandler.handleEventException(causeException, 0L, event));
 
         assertEquals(causeException, ex.getCause());
     }

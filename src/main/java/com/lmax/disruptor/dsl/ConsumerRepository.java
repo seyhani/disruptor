@@ -86,6 +86,19 @@ class ConsumerRepository
         return false;
     }
 
+    public boolean isRunning()
+    {
+        for (ConsumerInfo consumerInfo : consumerInfos)
+        {
+            if (consumerInfo.isRunning())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public EventProcessor getEventProcessorFor(final EventHandlerIdentity handlerIdentity)
     {
         final EventProcessorInfo eventprocessorInfo = getEventProcessorInfo(handlerIdentity);
