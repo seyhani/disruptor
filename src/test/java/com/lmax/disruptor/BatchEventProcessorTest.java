@@ -371,4 +371,73 @@ public final class BatchEventProcessorTest
             batchSizeToCountMap.put(batchSize, nextCount);
         }
     }
+
+    @Test
+    public void shouldStopProcessingOnFatalException() throws InterruptedException
+    {
+        final CountDownLatch fatalExceptionLatch = new CountDownLatch(1);
+        final CountDownLatch eventCountLatch = new CountDownLatch(1);
+
+        final class FatalExceptionEventHandler implements EventHandler<StubEvent>
+        {
+            private int eventCount = 0;
+
+            @Override
+            public void onEvent(final StubEvent event, final long sequence, final boolean endOfBatch)
+            {
+                eventCount++;
+                if (eventCount == 1)
+                {
+                    // First event should cause FatalException
+                    throw new RuntimeException("Test exception");
+                }
+                // Second event should not be processed
+                eventCountLatch.countDown();
+            }
+        }
+
+        final class FatalExceptionHandlerImpl implements ExceptionHandler<StubEvent>
+        {
+            @Override
+            public void handleEventException(final Throwable ex, final long sequence, final StubEvent event)
+            {
+                fatalExceptionLatch.countDown();
+                throw new FatalException(ex);
+            }
+
+            @Override
+            public void handleOnStartException(final Throwable ex)
+            {
+            }
+
+            @Override
+            public void handleOnShutdownException(final Throwable ex)
+            {
+            }
+        }
+
+        final FatalExceptionEventHandler eventHandler = new FatalExceptionEventHandler();
+        final BatchEventProcessor<StubEvent> batchEventProcessor = new BatchEventProcessorBuilder().build(
+                ringBuffer, sequenceBarrier, eventHandler);
+        batchEventProcessor.setExceptionHandler(new FatalExceptionHandlerImpl());
+        ringBuffer.addGatingSequences(batchEventProcessor.getSequence());
+
+        // Publish two events
+        ringBuffer.publish(ringBuffer.next());
+        ringBuffer.publish(ringBuffer.next());
+
+        Thread thread = new Thread(batchEventProcessor);
+        thread.start();
+
+        // Wait for the fatal exception to be handled
+        assertTrue(fatalExceptionLatch.await(2, TimeUnit.SECONDS));
+
+        // Give some time to ensure second event is not processed
+        Thread.sleep(100);
+
+        // Verify that processor stopped and second event was not processed
+        assertEquals(1, eventCountLatch.getCount(), "Second event should not be processed after FatalException");
+
+        thread.join(1000);
+    }
 }

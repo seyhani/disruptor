@@ -800,4 +800,54 @@ public class DisruptorTest
         boolean released = countDownLatch.await(TIMEOUT_IN_SECONDS, SECONDS);
         assertTrue(released, "Batch handler did not receive entries: " + countDownLatch.getCount());
     }
+
+    @Test
+    public void shouldIndicateWhenEventProcessorsAreRunning() throws Exception
+    {
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch stopLatch = new CountDownLatch(1);
+
+        final EventHandler<TestEvent> eventHandler = new EventHandler<TestEvent>()
+        {
+            @Override
+            public void onStart()
+            {
+                startLatch.countDown();
+            }
+
+            @Override
+            public void onEvent(final TestEvent event, final long sequence, final boolean endOfBatch)
+            {
+                // Keep processing
+            }
+
+            @Override
+            public void onShutdown()
+            {
+                stopLatch.countDown();
+            }
+        };
+
+        disruptor.handleEventsWith(eventHandler);
+
+        // Before start, isRunning should be false
+        assertFalse(disruptor.isRunning(), "Should not be running before start");
+
+        disruptor.start();
+
+        // Wait for the processor to actually start
+        assertTrue(startLatch.await(TIMEOUT_IN_SECONDS, SECONDS));
+
+        // After start, isRunning should be true
+        assertTrue(disruptor.isRunning(), "Should be running after start");
+
+        disruptor.halt();
+
+        // Wait for the processor to shutdown
+        assertTrue(stopLatch.await(TIMEOUT_IN_SECONDS, SECONDS));
+        executor.joinAllThreads();
+
+        // After halt, isRunning should be false
+        assertFalse(disruptor.isRunning(), "Should not be running after halt");
+    }
 }

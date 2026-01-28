@@ -3,6 +3,7 @@ package com.lmax.disruptor.examples;
 import com.lmax.disruptor.EventFactory;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.ExceptionHandler;
+import com.lmax.disruptor.FatalException;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.util.DaemonThreadFactory;
@@ -41,7 +42,8 @@ public class ShutdownOnError
         {
             if (execeptionIsFatal(ex))
             {
-                throw new RuntimeException(ex);
+                // Throw FatalException to stop event processing
+                throw new FatalException(ex);
             }
         }
 
@@ -81,7 +83,7 @@ public class ShutdownOnError
 
     private static void simplePublish(final Disruptor<Event> disruptor, final AtomicBoolean running)
     {
-        while (running.get())
+        while (running.get() && disruptor.isRunning())
         {
             disruptor.publishEvent((event, sequence) -> event.value = sequence);
         }
@@ -96,6 +98,6 @@ public class ShutdownOnError
         {
             publishOk = ringBuffer.tryPublishEvent((event, sequence) -> event.value = sequence);
         }
-        while (publishOk && running.get());
+        while (publishOk && running.get() && disruptor.isRunning());
     }
 }

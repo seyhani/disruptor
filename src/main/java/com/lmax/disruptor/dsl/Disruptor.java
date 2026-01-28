@@ -503,6 +503,16 @@ public class Disruptor<T>
         return started.get();
     }
 
+    /**
+     * Checks if any event processors are currently running.
+     *
+     * @return true if at least one event processor is running; otherwise false
+     */
+    public boolean isRunning()
+    {
+        return consumerRepository.isRunning();
+    }
+
     EventHandlerGroup<T> createEventProcessors(
             final Sequence[] barrierSequences,
             final EventHandler<? super T>[] eventHandlers)
